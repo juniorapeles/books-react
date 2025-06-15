@@ -3,7 +3,7 @@ import { Book } from "@/domain/entities/Book";
 import { BookRepository } from "@/domain/repositories/BookRepository";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "https://api.v1.juniorapeles.xyz",
 });
 
 export class BookApi implements BookRepository {
