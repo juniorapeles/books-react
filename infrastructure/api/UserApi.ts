@@ -3,7 +3,7 @@ import { UserRepository } from "@/domain/repositories/UserRepository";
 import { User } from "@/domain/entities/User";
 
 const api = axios.create({
-  baseURL: "http://api.v1.juniorapeles.xyz",
+  baseURL: "https://api.v1.juniorapeles.xyz",
 });
 
 export class UserApi implements UserRepository {
