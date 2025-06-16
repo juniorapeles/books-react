@@ -4,15 +4,14 @@ import { useEffect, useState } from "react";
 import { Loan } from "@/domain/entities/Loan";
 import { Book } from "@/domain/entities/Book";
 import { User } from "@/domain/entities/User";
-
 import { LoanApi } from "@/infrastructure/api/LoanApi";
 import { BookApi } from "@/infrastructure/api/BookApi";
 import { UserApi } from "@/infrastructure/api/UserApi";
-
 import { CreateLoanUseCase } from "@/application/usecases/CreateLoanUseCase";
 import { GetLoansUseCase } from "@/application/usecases/GetLoansUseCase";
 import { GetBooksUseCase } from "@/application/usecases/GetBooksUseCase";
 import { GetUsersUseCase } from "@/application/usecases/GetUsersUseCase";
+import { Spinner } from "@/components/Spinner";
 
 const loanApi = new LoanApi();
 const bookApi = new BookApi();
@@ -30,16 +29,23 @@ export default function LoanPage() {
   const [selectedBookId, setSelectedBookId] = useState<number | undefined>();
   const [selectedUserId, setSelectedUserId] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   async function fetchData() {
-    const [loansData, booksData, usersData] = await Promise.all([
-      getLoansUseCase.execute(),
-      getBooksUseCase.execute(),
-      getUsersUseCase.execute(),
-    ]);
-    setLoans(loansData);
-    setBooks(booksData);
-    setUsers(usersData);
+    try {
+      const [loansData, booksData, usersData] = await Promise.all([
+        getLoansUseCase.execute(),
+        getBooksUseCase.execute(),
+        getUsersUseCase.execute(),
+      ]);
+      setLoans(loansData);
+      setBooks(booksData);
+      setUsers(usersData);
+    } catch (err) {
+      console.error("Erro ao buscar dados:", err);
+    } finally {
+      setInitialLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -49,7 +55,7 @@ export default function LoanPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedBookId || !selectedUserId) {
-      alert("Please select a book and a user");
+      alert("Selecione um livro e um usuário.");
       return;
     }
     setLoading(true);
@@ -59,11 +65,15 @@ export default function LoanPage() {
       setSelectedUserId(undefined);
       await fetchData();
     } catch (err) {
-      alert("Error creating loan.");
       console.error(err);
+      alert("Erro ao criar o empréstimo.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (initialLoading) {
+    return <Spinner message="Carregando dados..." />;
   }
 
   return (
@@ -110,9 +120,11 @@ export default function LoanPage() {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Saving..." : "Save Loan"}
+          {loading ? "Salvando..." : "Save Loan"}
         </button>
       </form>
+
+      {loading && <Spinner message="Salvando empréstimo..." />}
 
       <h2 className="text-xl font-semibold mb-4 text-gray-700">Loan List</h2>
       {loans.length === 0 ? (

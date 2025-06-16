@@ -5,6 +5,7 @@ import { Book } from "@/domain/entities/Book";
 import { BookApi } from "@/infrastructure/api/BookApi";
 import { CreateBookUseCase } from "@/application/usecases/CreateBookUseCase";
 import { GetBooksUseCase } from "@/application/usecases/GetBooksUseCase";
+import { Spinner } from "@/components/Spinner";
 
 const bookApi = new BookApi();
 const createBookUseCase = new CreateBookUseCase(bookApi);
@@ -16,6 +17,7 @@ export default function BookPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const fetchBooks = async () => {
     try {
@@ -23,6 +25,8 @@ export default function BookPage() {
       setBooks(data);
     } catch {
       setError("Erro ao buscar os livros.");
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -45,6 +49,10 @@ export default function BookPage() {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return <Spinner message="Carregando livros..." />;
+  }
 
   return (
     <main className="max-w-xl mx-auto py-8 px-4">
@@ -77,6 +85,8 @@ export default function BookPage() {
           {loading ? "Salvando..." : "Salvar Livro"}
         </button>
       </form>
+
+      {loading && <Spinner message="Salvando livro..." />}
 
       {error && (
         <div className="bg-red-100 text-red-700 p-3 rounded mb-4">

@@ -5,6 +5,7 @@ import { User } from "@/domain/entities/User";
 import { UserApi } from "@/infrastructure/api/UserApi";
 import { CreateUserUseCase } from "@/application/usecases/CreateUserUseCase";
 import { GetUsersUseCase } from "@/application/usecases/GetUsersUseCase";
+import { Spinner } from "@/components/Spinner";
 
 const userApi = new UserApi();
 const createUserUseCase = new CreateUserUseCase(userApi);
@@ -24,19 +25,22 @@ export default function UserPage() {
       await fetchUsers();
     } catch (err) {
       console.error(err);
-      alert("Error creating user.");
+      alert("Erro ao criar usuário.");
     } finally {
       setLoading(false);
     }
   }
 
   async function fetchUsers() {
+    setLoading(true);
     try {
       const data = await getUsersUseCase.execute();
       setUsers(data);
     } catch (err) {
       console.error(err);
-      alert("Error fetching users.");
+      alert("Erro ao buscar usuários.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -44,13 +48,17 @@ export default function UserPage() {
     fetchUsers();
   }, []);
 
+  if (loading && users.length === 0) {
+    return <Spinner message="Carregando usuários..." />;
+  }
+
   return (
     <main className="max-w-xl mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">User Registration</h1>
+      <h1 className="text-2xl font-bold mb-4">Cadastro de Usuário</h1>
       <form onSubmit={handleSubmit} className="space-y-4 mb-8">
         <input
           className="w-full border rounded px-3 py-2"
-          placeholder="Username"
+          placeholder="Nome de usuário"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -61,13 +69,16 @@ export default function UserPage() {
           className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? "Saving..." : "Save"}
+          {loading ? "Salvando..." : "Salvar"}
         </button>
       </form>
 
-      <h2 className="text-xl font-semibold mb-2">User List</h2>
+      <h2 className="text-xl font-semibold mb-2">Lista de Usuários</h2>
+
+      {loading && <Spinner message="Atualizando lista..." />}
+
       {users.length === 0 ? (
-        <p className="text-gray-500">No users found.</p>
+        <p className="text-gray-500">Nenhum usuário encontrado.</p>
       ) : (
         <ul className="space-y-2">
           {users.map((user) => (
